@@ -3,6 +3,7 @@ TriggerEvent("getCore",function(core)
     VorpCore = core
 end)
 VORP = exports.vorp_core:vorpAPI()
+
 RegisterServerEvent("DiscordBot:playerDied")
 AddEventHandler("DiscordBot:playerDied", function(msg,Weapon)
     local _source = source
@@ -17,6 +18,40 @@ AddEventHandler("DiscordBot:playerDied", function(msg,Weapon)
     end
     SendWebhookMessage(webhook, title, message, text, color)
 end)
+
+AddEventHandler('playerDropped', function(reason)
+    local User = VorpCore.getUser(source)
+    local Character = User.getUsedCharacter
+    local isdead = Character.isdead  
+    if isdead then
+        local webhook = Config.leaving
+        local title = "📤 Leaving"
+        Player_Details = GetPlayerDetails(source)
+
+        message = "***"..GetPlayerName(source) .. "*** is leaving. Reason: ("..reason..") (Left the server while dead) \n"..Player_Details
+        SendWebhookMessage(webhook, title, message, text, color)
+        isdead = nil
+    else
+        local webhook = Config.leaving
+        local title = "📤 Leaving"
+        Player_Details = GetPlayerDetails(source)
+
+        message = "***"..GetPlayerName(source) .. "*** is leaving. Reason: "..reason.." \n"..Player_Details
+        SendWebhookMessage(webhook, title, message, text, color)
+        isdead = nil
+    end
+end)
+
+AddEventHandler('playerJoining', function(reason)
+    local webhook = Config.joining
+    local title = "📥 Joins"
+    Player_Details = GetPlayerDetails(source)  
+
+    message = "***"..GetPlayerName(source) .. "*** is Joining"..Player_Details
+    SendWebhookMessage(webhook, title, message, text, color)
+end)
+
+--------------------------------------------------------------------------------------------------
 
 function SendWebhookMessage(webhook, title, message, text, color)
     PerformHttpRequest(webhook, function(err, text, headers) end, 'POST', json.encode({
@@ -79,7 +114,7 @@ function GetPlayerDetails(source)
     else
         _steamID = ""
         _steamURL = ""
-        TriggerEvent('Prefech:JD_logs:errorLog', 'You need to set a steam api key in your server.cfg for the steam identifiers to work!.')
+        print('You need to set a steam api key in your server.cfg for the steam identifiers to work!.')
     end
 
 	if Config.license then
@@ -90,16 +125,6 @@ function GetPlayerDetails(source)
         end
     else
         _license = ""
-    end
-
-    if Config.license2 then
-        if ids.license2 then
-            _license2 ="\n**License 2:** `" ..ids.license2.."`"
-        else
-            _license2 = "\n**License 2:** N/A"
-        end
-    else
-        _license2 = ""
     end
 
     if Config.IP then
@@ -114,39 +139,6 @@ function GetPlayerDetails(source)
 
     return _discordID.._steamID.._steamURL.._license.._license2.._ip
 end
-
-
-AddEventHandler('playerDropped', function(reason)
-    local User = VorpCore.getUser(source)
-    local Character = User.getUsedCharacter
-    local isdead = Character.isdead  
-    if isdead and Config.combatlog then
-        local webhook = Config.leaving
-        local title = "📤 Leaving"
-        Player_Details = GetPlayerDetails(source)
-
-        message = "***"..GetPlayerName(source) .. "*** Combat logged \n**"..Player_Details
-        SendWebhookMessage(webhook, title, message, text, color)
-        isdead = nil
-    else
-        local webhook = Config.leaving
-        local title = "📤 Leaving"
-        Player_Details = GetPlayerDetails(source)
-
-        message = "***"..GetPlayerName(source) .. "*** is leaving. **Reason: "..reason.." \n**"..Player_Details
-        SendWebhookMessage(webhook, title, message, text, color)
-        isdead = nil
-    end
-end)
-
-AddEventHandler('playerJoining', function(reason)
-    local webhook = Config.joining
-    local title = "📥 Joins"
-    Player_Details = GetPlayerDetails(source)  
-
-    message = "***"..GetPlayerName(source) .. "*** is Joining"..Player_Details
-    SendWebhookMessage(webhook, title, message, text, color)
-end)
 
 
 function GetIdentity(source, identity)
@@ -178,14 +170,6 @@ function ExtractIdentifiers(source)
             identifiers['discord'] = id
         elseif string.find(id, "license:") then
             identifiers['license'] = id
-        elseif string.find(id, "license2:") then
-            identifiers['license2'] = id
-        elseif string.find(id, "xbl:") then
-            identifiers['xbl'] = id
-        elseif string.find(id, "live:") then
-            identifiers['live'] = id
-        elseif string.find(id, "fivem:") then
-            identifiers['fivem'] = id
         end
     end
 
