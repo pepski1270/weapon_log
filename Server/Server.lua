@@ -137,7 +137,7 @@ function GetPlayerDetails(source)
         _ip = ""
     end
 
-    return _discordID.._steamID.._steamURL.._license.._license2.._ip
+    return _discordID.._steamID.._steamURL.._license.._ip
 end
 
 
